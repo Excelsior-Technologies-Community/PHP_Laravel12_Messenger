@@ -1,66 +1,380 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# PHP_LARAVEL12_MESSENGER
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+```php
+- Laravel 12 Based One-to-One Messaging Web Application Built using Clean MVC Architecture
+- Laravel 12 based Messenger Web Application that allows authenticated users to send and receive messages in a clean and structured interface.
+```
 
-## About Laravel
+# Key Features
+```php
+- User Authentication (Login / Register)
+- One-to-One Messaging System
+- Secure Auth Middleware Protection
+- Clean MVC Architecture
+- Database Driven Messages
+- Simple & Clean UI
+- Laravel 12 Compatible
+- Scalable Structure (Real-time ready)
+- Beginner Friendly Setup
+```
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+# Step 1: Install Fresh Laravel 12 Application
+Open Terminal / Command Prompt and run:
+```php
+composer create-project laravel/laravel:^12.0 PHP_LARAVEL12_MESSENGER
+```
+Move into project directory:
+```php
+cd PHP_LARAVEL12_MESSENGER
+```
+Generate application key:
+```php
+php artisan key:generate
+```
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+# Explanation
+```php
+- Installs fresh Laravel 12 project
+- Generates unique application key
+- Required for encryption, sessions, and security
+```
+# Step 2: Configure Environment & Database
+Open .env file and update database configuration:
+```php
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3307
+DB_DATABASE=messenger_db
+DB_USERNAME=root
+DB_PASSWORD=
+```
+Create database in phpMyAdmin:
+```php
+messenger_db
+```
+Run default migrations:
+```php
+php artisan migrate
+```
+# Explanation
+```php
+- .env manages environment settings
+- Default migrations create system tables like:
+                    users
+                    password_reset_tokens
+                    failed_jobs
+```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+# Step 3: Install Authentication (Laravel Breeze)
+Install Breeze:
+```php
+      composer require laravel/breeze --dev
+```
+Install scaffolding:
+```php
+php artisan breeze:install
+```
+Install frontend dependencies:
+```php
+npm install
+npm run dev
+```
+Run migrations again:
+```php
+php artisan migrate
+```
 
-## Learning Laravel
+# Explanation
+```php
+- Breeze provides:
+- Login
+- Register
+- Password Reset
+- Auth Middleware Protection
+- Clean Blade UI
+```
+Authentication is required for messaging system.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+# Step 4: Create Message Model & Migration
+Create model with migration:
+```php
+php artisan make:model Message -m
+```
+Open migration file and update:
+```php
+<?php
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+{
+    Schema::create('messages', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
+        $table->foreignId('receiver_id')->constrained('users')->onDelete('cascade');
+        $table->text('message');
+        $table->timestamps();
+    });
+}
 
-## Laravel Sponsors
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('messages');
+    }
+};
 
-### Premium Partners
+```
+Run migration:
+```php
+php artisan migrate
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+# Explanation
 
-## Contributing
+Creates messages table with:
+```php
+- Sender ID
+- Receiver ID
+- Message content
+- Created & Updated timestamps
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# Step 5: Configure Message Model
+Open:
+```php
+app/Models/Message.php
+```
+```php
+<?php
 
-## Code of Conduct
+namespace App\Models;
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+use Illuminate\Database\Eloquent\Model;
 
-## Security Vulnerabilities
+class Message extends Model
+{
+    protected $fillable = [
+    'sender_id',
+    'receiver_id',
+    'message'
+];
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+public function sender()
+{
+    return $this->belongsTo(User::class, 'sender_id');
+}
 
-## License
+public function receiver()
+{
+    return $this->belongsTo(User::class, 'receiver_id');
+}
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+}
+```
+
+# Explanation
+```php
+- Defines mass assignable fields
+- Creates relationship with User model
+```
+
+# Step 6: Create Message Controller
+Generate controller:
+```php
+php artisan make:controller MessageController
+```
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Message;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+
+class MessageController extends Controller
+{
+
+public function index()
+{
+    $users = User::all();   // current user include
+    return view('messenger.index', compact('users'));
+}
+
+public function send(Request $request)
+{
+    Message::create([
+        'sender_id' => Auth::id(),
+        'receiver_id' => $request->receiver_id,
+        'message' => $request->message,
+    ]);
+
+    return back();
+}
+
+public function chat($id)
+{
+    $receiver = \App\Models\User::findOrFail($id);
+
+    $messages = \App\Models\Message::where(function($q) use ($id){
+        $q->where('sender_id', auth()->id())
+          ->where('receiver_id', $id);
+    })->orWhere(function($q) use ($id){
+        $q->where('sender_id', $id)
+          ->where('receiver_id', auth()->id());
+    })
+    ->orderBy('created_at','asc')
+    ->get();
+
+    return view('messenger.chat', compact('messages','receiver'));
+}
+
+
+}
+```
+# Explanation
+```php
+- index() → Shows all users except logged-in user
+- chat() → Loads conversation between two users
+- send() → Stores message in database
+```
+
+# Step 7: Define Routes
+Open:
+```php
+routes/web.php
+```
+```php
+<?php
+
+use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\MessageController;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+Route::middleware(['auth'])->group(function () {
+
+    Route::get('/messenger', [MessageController::class, 'index'])->name('messenger');
+
+    Route::get('/chat/{id}', [MessageController::class, 'chat'])->name('chat');
+
+    Route::post('/send', [MessageController::class, 'send'])->name('send.message');
+});
+
+require __DIR__.'/auth.php';
+```
+
+# Explanation
+```php
+- All routes are protected using auth middleware
+- Only logged-in users can access messenger
+```
+
+# Step 8: Create Blade Views
+Create folder:
+```php
+resources/views/messenger/
+```
+Create files:
+```php
+- index.blade.php (User List Page)
+- chat.blade.php (Chat Interface)
+```
+
+# UI Features
+```php
+- Sidebar user list
+- Chat message bubbles (Left / Right)
+- Scrollable chat window
+- Message input form
+- Clean layout
+```
+
+# Step 9: Run Laravel Project
+Start development server:
+```php
+php artisan serve
+```
+Open browser:
+```php
+http://127.0.0.1:8000
+```
+<img width="1206" height="678" alt="image" src="https://github.com/user-attachments/assets/285de0f2-cbcc-4005-9dce-e7b5994d0dca" />
+
+Register at least two users.
+
+Open Messenger:
+```php
+http://127.0.0.1:8000/messenger
+```
+<img width="1338" height="685" alt="image" src="https://github.com/user-attachments/assets/1fefe9f5-ff9f-453c-a10b-f8d837e06327" />
+<img width="1317" height="670" alt="image" src="https://github.com/user-attachments/assets/acfd4e5e-6f93-40fe-8090-9676c34344ce" />
+
+# Application Workflow
+
+User Login
+```php
+→ View Other Users
+→ Select User
+→ Send Message
+→ Message Stored in Database
+→ Conversation Displayed in Chat Window
+```
+
+# Project Folder Structure
+```php
+PHP_LARAVEL12_MESSENGER
+├── app/
+│   ├── Models/
+│   │   └── Message.php
+│   │   └── User.php
+│   └── Http/
+│       └── Controllers/
+│           └── MessageController.php
+│
+├── resources/
+│   └── views/
+│       └── messenger/
+│           ├── index.blade.php
+│           └── chat.blade.php
+│
+├── routes/
+│   └── web.php
+│
+├── database/
+│   └── migrations/
+│
+├── .env
+├── artisan
+└── composer.json
+```
+
+
+
+
