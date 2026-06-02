@@ -29,6 +29,7 @@ class MessageController extends Controller
 
         return view('messenger.index', compact('users'));
     }
+    
 
     public function send(Request $request)
     {
