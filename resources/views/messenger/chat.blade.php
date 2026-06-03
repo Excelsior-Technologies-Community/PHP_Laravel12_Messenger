@@ -3,31 +3,37 @@
 @section('content')
 
 <style>
+    body {
+        background: #0f172a;
+    }
+
     .chat-wrapper {
         height: 92vh;
-        background: linear-gradient(135deg, #eef2ff, #f8fafc);
+        background: linear-gradient(135deg, #0f172a, #1e293b);
     }
 
     .sidebar {
-        background: #111827;
+        background: rgba(15, 23, 42, 0.95);
         color: white;
+        border-right: 1px solid rgba(255,255,255,0.1);
     }
 
     .chat-header {
-        background: white;
-        border-bottom: 1px solid #e5e7eb;
+        background: rgba(255,255,255,0.08);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
         padding: 15px 25px;
         display: flex;
         align-items: center;
         gap: 12px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, .05);
+        color: white;
     }
 
     .avatar {
         width: 45px;
         height: 45px;
         border-radius: 50%;
-        background: #4f46e5;
+        background: #6366f1;
         color: white;
         display: flex;
         align-items: center;
@@ -42,196 +48,217 @@
         padding: 25px;
     }
 
-    .sender-message {
-        background: #4f46e5;
+    .message {
+        max-width: 60%;
+        padding: 10px 14px;
+        border-radius: 16px;
+        margin-bottom: 10px;
+        position: relative;
+    }
+
+    .sender {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
         color: white;
-        border-radius: 18px 18px 5px 18px;
-        padding: 12px 16px;
-        max-width: 65%;
-        box-shadow: 0 3px 10px rgba(79, 70, 229, .2);
+        margin-left: auto;
+        border-bottom-right-radius: 4px;
     }
 
-    .receiver-message {
-        background: white;
+    .receiver {
+        background: rgba(255,255,255,0.9);
         color: #111827;
-        border-radius: 18px 18px 18px 5px;
-        padding: 12px 16px;
-        max-width: 65%;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, .08);
-    }
-
-    .chat-input {
-        background: white;
-        padding: 20px;
-        border-top: 1px solid #e5e7eb;
-    }
-
-    .chat-input input {
-        border-radius: 50px;
-        height: 50px;
-    }
-
-    .send-btn {
-        border-radius: 50px;
-        padding: 0 30px;
+        border-bottom-left-radius: 4px;
     }
 
     .time {
-        font-size: 11px;
-        opacity: .8;
+        font-size: 10px;
+        opacity: 0.7;
+        margin-top: 5px;
+        display: block;
     }
 
-    .seen {
-        font-size: 11px;
-        color: #86efac;
+    .seen { font-size: 10px; color: #34d399; }
+    .edited { font-size: 10px; color: #fbbf24; }
+
+    /* ACTIONS (EDIT DELETE) */
+    .actions {
+        display: none;
+        margin-top: 6px;
     }
 
-    .back-btn {
-        border-radius: 25px;
+    .message:hover .actions {
+        display: block;
+    }
+
+    .btn-action {
+        font-size: 11px;
+        border: none;
+        background: transparent;
+        color: #ddd;
+        cursor: pointer;
+        margin-right: 8px;
+    }
+
+    .btn-action:hover {
+        color: #fff;
+    }
+
+    .chat-input {
+        background: rgba(255,255,255,0.08);
+        backdrop-filter: blur(10px);
+        padding: 15px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .chat-input input {
+        border-radius: 30px;
+        height: 48px;
+        border: none;
+        padding-left: 18px;
+    }
+
+    .chat-input button {
+        border-radius: 30px;
+        padding: 0 25px;
+    }
+
+    /* TOAST */
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+    }
+
+    .toast-box {
+        background: #10b981;
+        color: white;
+        padding: 12px 18px;
+        border-radius: 10px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        animation: slideIn 0.3s ease;
+        font-size: 14px;
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(120%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
     }
 </style>
+
+<!-- TOAST -->
+<div class="toast-container">
+    @if(session('success'))
+        <div class="toast-box" id="toastBox">
+            ✅ {{ session('success') }}
+        </div>
+    @endif
+</div>
 
 <div class="container-fluid chat-wrapper">
 
     <div class="row h-100">
 
-        <!-- Sidebar -->
+        <!-- SIDEBAR -->
         <div class="col-md-3 sidebar p-4">
+            <h4 class="fw-bold mb-4">💬 Messenger</h4>
 
-            <h3 class="fw-bold mb-4">
-                Laravel Messenger
-            </h3>
-
-            <a href="{{ route('messenger') }}"
-                class="btn btn-light back-btn">
+            <a href="{{ route('messenger') }}" class="btn btn-light btn-sm">
                 ← Back
             </a>
-
         </div>
 
-        <!-- Chat Section -->
+        <!-- CHAT -->
         <div class="col-md-9 d-flex flex-column p-0">
 
-            <!-- Header -->
+            <!-- HEADER -->
             <div class="chat-header">
-
                 <div class="avatar">
                     {{ strtoupper(substr($receiver->name,0,1)) }}
                 </div>
 
                 <div>
-                    <h5 class="mb-0 fw-bold">
+                    <h6 class="mb-0 fw-bold text-white">
                         {{ $receiver->name }}
-                    </h5>
-
-                    <small class="text-success">
-                        ● Active Chat
-                    </small>
+                    </h6>
+                    <small class="text-success">● Online</small>
                 </div>
-
             </div>
 
-            <!-- Messages -->
+            <!-- MESSAGES -->
             <div class="chat-area" id="chatArea">
 
                 @forelse($messages as $msg)
 
-                @if($msg->sender_id == auth()->id())
+                    @if(!$msg->is_deleted)
 
-                <div class="d-flex justify-content-end mb-3">
+                        <div class="message {{ $msg->sender_id == auth()->id() ? 'sender' : 'receiver' }}">
 
-                    <div class="sender-message">
+                            {{ $msg->message }}
 
-                        {{ $msg->message }}
-
-                        <div class="text-end mt-2">
+                            @if($msg->edited_at)
+                                <div class="edited">(edited)</div>
+                            @endif
 
                             <span class="time">
                                 {{ $msg->created_at->format('h:i A') }}
                             </span>
 
-                            <br>
+                            {{-- ONLY OWNER CAN EDIT/DELETE --}}
+                            @if($msg->sender_id == auth()->id())
 
-                            @if($msg->is_read)
-                            <span class="seen">
-                                ✓✓ Seen
-                            </span>
-                            @else
-                            <span class="time">
-                                ✓ Sent
-                            </span>
+                                <div class="actions">
+
+                                    <!-- EDIT -->
+                                    <form method="POST" action="{{ route('message.edit', $msg->id) }}">
+                                        @csrf
+
+                                        <input type="text"
+                                               name="message"
+                                               value="{{ $msg->message }}"
+                                               style="width:100%;border-radius:8px;border:none;padding:4px;margin-top:5px;">
+
+                                        <button class="btn-action">✏ Edit</button>
+                                    </form>
+
+                                    <!-- DELETE -->
+                                    <form method="POST" action="{{ route('message.delete', $msg->id) }}">
+                                        @csrf
+                                        <button class="btn-action">🗑 Delete</button>
+                                    </form>
+
+                                </div>
+
                             @endif
 
                         </div>
 
-                    </div>
-
-                </div>
-
-                @else
-
-                <div class="d-flex justify-content-start mb-3">
-
-                    <div class="receiver-message">
-
-                        {{ $msg->message }}
-
-                        <div class="mt-2">
-
-                            <span class="text-muted time">
-                                {{ $msg->created_at->format('h:i A') }}
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                @endif
+                    @endif
 
                 @empty
-
-                <div class="text-center mt-5">
-
-                    <img src="https://cdn-icons-png.flaticon.com/512/1041/1041916.png"
-                        width="90">
-
-                    <h5 class="mt-3 text-muted">
-                        No messages yet
-                    </h5>
-
-                    <p class="text-secondary">
-                        Start the conversation now.
-                    </p>
-
-                </div>
-
+                    <div class="text-center text-white mt-5">
+                        <h5>No messages yet</h5>
+                    </div>
                 @endforelse
 
             </div>
 
-            <!-- Input -->
+            <!-- INPUT -->
             <div class="chat-input">
 
-                <form method="POST"
-                    action="{{ route('send.message') }}">
-
+                <form method="POST" action="{{ route('send.message') }}">
                     @csrf
 
-                    <input type="hidden"
-                        name="receiver_id"
-                        value="{{ $receiver->id }}">
+                    <input type="hidden" name="receiver_id" value="{{ $receiver->id }}">
 
                     <div class="input-group">
 
                         <input type="text"
-                            name="message"
-                            class="form-control"
-                            placeholder="Type your message..."
-                            required>
+                               name="message"
+                               class="form-control"
+                               placeholder="Type a message..."
+                               required>
 
-                        <button class="btn btn-primary send-btn">
+                        <button class="btn btn-primary">
                             Send
                         </button>
 
@@ -250,6 +277,12 @@
 <script>
     let chatArea = document.getElementById('chatArea');
     chatArea.scrollTop = chatArea.scrollHeight;
+
+    let toast = document.getElementById('toastBox');
+
+    if (toast) {
+        setTimeout(() => toast.remove(), 2500);
+    }
 </script>
 
 @endsection

@@ -21,10 +21,12 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth'])->group(function () {
 
     Route::get('/messenger', [MessageController::class, 'index'])->name('messenger');
+    Route::post('/message/edit/{id}', [MessageController::class, 'editMessage'])->name('message.edit');
 
+    Route::post('/message/delete/{id}', [MessageController::class, 'deleteMessage'])->name('message.delete');
     Route::get('/chat/{id}', [MessageController::class, 'chat'])->name('chat');
 
     Route::post('/send', [MessageController::class, 'send'])->name('send.message');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
