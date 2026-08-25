@@ -4,20 +4,22 @@
 
 <style>
     .messenger-wrapper {
-        height: 92vh;
-        background: #f4f6fb;
+        min-height: 92vh;
+        background: #f8fafc;
     }
 
-    /* Sidebar */
     .user-sidebar {
-        background: #111827;
-        color: white;
+        background: #ffffff;
+        border-right: 1px solid #e2e8f0;
         overflow-y: auto;
     }
 
-    /* User card */
+    .user-sidebar h4 {
+        color: #1e293b;
+    }
+
     .user-item {
-        background: rgba(255, 255, 255, 0.06);
+        background: #f8fafc;
         padding: 12px;
         border-radius: 12px;
         transition: 0.3s;
@@ -25,19 +27,19 @@
         align-items: center;
         justify-content: space-between;
         margin-bottom: 10px;
+        text-decoration: none;
     }
 
     .user-item:hover {
-        background: rgba(255, 255, 255, 0.15);
+        background: #e2e8f0;
         transform: translateX(3px);
     }
 
-    /* Avatar */
     .avatar {
         width: 42px;
         height: 42px;
         border-radius: 50%;
-        background: #4f46e5;
+        background: #3b82f6;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -46,12 +48,20 @@
         margin-right: 10px;
     }
 
-    /* User name */
-    .user-name {
-        font-weight: 500;
+    .user-info {
+        flex: 1;
     }
 
-    /* Badge */
+    .user-name {
+        font-weight: 500;
+        color: #1e293b;
+    }
+
+    .user-status {
+        font-size: 11px;
+        color: #94a3b5;
+    }
+
     .badge-custom {
         background: #ef4444;
         font-size: 12px;
@@ -59,15 +69,24 @@
         border-radius: 20px;
     }
 
-    /* Empty state */
     .empty-state {
         text-align: center;
-        color: #6b7280;
+        color: #94a3b5;
     }
+
+    .online-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+
+    .online-dot.online { background: #22c55e; }
+    .online-dot.offline { background: #94a3b5; }
 </style>
 
 <div class="container-fluid messenger-wrapper">
-
     <div class="row h-100">
 
         <!-- Sidebar -->
@@ -89,67 +108,101 @@
 
             <!-- Users -->
             @forelse($users as $user)
-
             <a href="{{ route('chat', $user->id) }}"
-                class="text-decoration-none text-white">
+                class="text-decoration-none text-white user-link"
+                data-user-id="{{ $user->id }}">
 
                 <div class="user-item">
-
                     <div class="d-flex align-items-center">
-
                         <div class="avatar">
-                            {{ strtoupper(substr($user->name,0,1)) }}
+                            {{ strtoupper(substr($user->name, 0, 1)) }}
                         </div>
-
-                        <div class="user-name">
-                            {{ $user->name }}
+                        <div class="user-info">
+                            <div class="user-name">{{ $user->name }}</div>
+                            <div class="user-status" id="status-{{ $user->id }}">
+                                <span class="online-dot offline"></span>Offline
+                            </div>
                         </div>
-
                     </div>
 
-                    @if($user->unread_count > 0)
-                    <span class="badge-custom">
-                        {{ $user->unread_count }}
+                    <span class="badge-custom" id="badge-{{ $user->id }}" style="display: none;">
+                        0
                     </span>
-                    @endif
-
                 </div>
-
             </a>
-
             @empty
-
             <div class="empty-state mt-4">
                 <h6>No users found</h6>
             </div>
-
             @endforelse
-
         </div>
 
         <!-- Right Side -->
         <div class="col-md-8 col-lg-9 d-flex align-items-center justify-content-center">
-
             <div class="text-center">
-
                 <img src="https://cdn-icons-png.flaticon.com/512/1041/1041916.png"
-                    width="90"
-                    class="mb-3">
+                    width="90" class="mb-3">
 
-                <h4 class="text-muted">
-                    Select a conversation
-                </h4>
+                <h4 class="text-muted">Select a conversation</h4>
 
                 <p class="text-secondary">
                     Choose a user from the left sidebar to start chatting.
                 </p>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
+
+<script>
+    const currentUserId = {{ auth()->id() }};
+
+    // Set up unread counts from server data
+    @foreach($users as $user)
+    @if($user->unread_count > 0)
+    document.getElementById('badge-{{ $user->id }}').style.display = 'inline-block';
+    document.getElementById('badge-{{ $user->id }}').textContent = {{ $user->unread_count }};
+    @endif
+    @endforeach
+
+    // Listen for new messages in real-time to update unread badge
+    if (window.Echo) {
+        window.Echo.private('private-messenger.' + currentUserId)
+            .listen('MessageSent', (e) => {
+                const badge = document.getElementById('badge-' + e.message.sender_id);
+                if (badge) {
+                    let count = parseInt(badge.textContent || '0');
+                    count++;
+                    badge.textContent = count;
+                    badge.style.display = 'inline-block';
+                }
+            })
+            .listen('MessageRead', (e) => {
+                const badge = document.getElementById('badge-' + e.sender_id);
+                if (badge && e.reader_id === currentUserId) {
+                    badge.textContent = '0';
+                    badge.style.display = 'none';
+                }
+            });
+    }
+
+    // Update online/offline status from presence channel
+    function updatePresence() {
+        const onlineUsers = window.messengerOnlineUsers || {};
+        @foreach($users as $user)
+        const statusEl = document.getElementById('status-{{ $user->id }}');
+        if (statusEl) {
+            const userId = {{ $user->id }};
+            if (onlineUsers[userId]) {
+                statusEl.innerHTML = '<span class="online-dot online"></span>Online';
+            } else {
+                statusEl.innerHTML = '<span class="online-dot offline"></span>Offline';
+            }
+        }
+        @endforeach
+    }
+
+    setInterval(updatePresence, 3000);
+    setTimeout(updatePresence, 1000);
+</script>
 
 @endsection
